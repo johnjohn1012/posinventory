@@ -1,0 +1,70 @@
+tbl_customer	CREATE TABLE `tbl_customer` (
+ `cust_id` int(11) NOT NULL AUTO_INCREMENT,
+ `customer_type` enum('individual','business') NOT NULL,
+ `customer_name` varchar(255) NOT NULL,
+ PRIMARY KEY (`cust_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+tbl_payments	CREATE TABLE `tbl_payments` (
+ `payment_id` int(11) NOT NULL AUTO_INCREMENT,
+ `pos_order_id` int(11) DEFAULT NULL,
+ `payment_date` timestamp NOT NULL DEFAULT current_timestamp(),
+ `payment_amount` decimal(10,2) DEFAULT NULL,
+ `payment_method` enum('cash','credit','debit','gcash','online') NOT NULL,
+ `payment_status` enum('pending','completed','failed') NOT NULL,
+ PRIMARY KEY (`payment_id`),
+ KEY `pos_order_id` (`pos_order_id`),
+ CONSTRAINT `fk_payment_pos_order` FOREIGN KEY (`pos_order_id`) REFERENCES `tbl_pos_orders` (`pos_order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+tbl_pos_orders	CREATE TABLE `tbl_pos_orders` (
+ `pos_order_id` int(11) NOT NULL AUTO_INCREMENT,
+ `employee_id` int(11) DEFAULT NULL,
+ `cust_id` int(11) NOT NULL,
+ `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
+ `order_total_amount` decimal(10,2) DEFAULT NULL,
+ `order_status` enum('pending','completed','cancelled') NOT NULL,
+ `order_type` enum('qr_code','counter') NOT NULL,
+ PRIMARY KEY (`pos_order_id`),
+ KEY `employee_id` (`employee_id`),
+ KEY `cust_id` (`cust_id`),
+ CONSTRAINT `fk_pos_order_customer` FOREIGN KEY (`cust_id`) REFERENCES `tbl_customer` (`cust_id`),
+ CONSTRAINT `fk_pos_order_employee` FOREIGN KEY (`employee_id`) REFERENCES `tbl_employee` (`employee_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+tbl_pos_order_items	CREATE TABLE `tbl_pos_order_items` (
+ `pos_order_item_id` int(11) NOT NULL AUTO_INCREMENT,
+ `pos_order_id` int(11) DEFAULT NULL,
+ `product_id` int(11) DEFAULT NULL,
+ `quantity_sold` int(11) NOT NULL,
+ `item_price` decimal(10,2) DEFAULT NULL,
+ `item_total_amount` decimal(10,2) DEFAULT NULL,
+ PRIMARY KEY (`pos_order_item_id`),
+ KEY `pos_order_id` (`pos_order_id`),
+ KEY `product_id` (`product_id`),
+ CONSTRAINT `fk_pos_order_item_order` FOREIGN KEY (`pos_order_id`) REFERENCES `tbl_pos_orders` (`pos_order_id`),
+ CONSTRAINT `fk_pos_order_item_product` FOREIGN KEY (`product_id`) REFERENCES `tbl_products` (`product_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+tbl_receipts	CREATE TABLE `tbl_receipts` (
+ `receipt_id` int(11) NOT NULL AUTO_INCREMENT,
+ `pos_order_id` int(11) DEFAULT NULL,
+ `employee_id` int(11) DEFAULT NULL,
+ `receipt_date` timestamp NOT NULL DEFAULT current_timestamp(),
+ `receipt_total_amount` decimal(10,2) DEFAULT NULL,
+ `receipt_status` enum('paid','unpaid','refunded') NOT NULL,
+ PRIMARY KEY (`receipt_id`),
+ KEY `pos_order_id` (`pos_order_id`),
+ KEY `employee_id` (`employee_id`),
+ CONSTRAINT `fk_receipt_employee` FOREIGN KEY (`employee_id`) REFERENCES `tbl_employee` (`employee_id`),
+ CONSTRAINT `fk_receipt_pos_order` FOREIGN KEY (`pos_order_id`) REFERENCES `tbl_pos_orders` (`pos_order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+tbl_sales	CREATE TABLE `tbl_sales` (
+ `sale_id` int(11) NOT NULL AUTO_INCREMENT,
+ `receipt_id` int(11) DEFAULT NULL,
+ `employee_id` int(11) DEFAULT NULL,
+ `sale_date` timestamp NOT NULL DEFAULT current_timestamp(),
+ `total_sale_amount` decimal(10,2) DEFAULT NULL,
+ `sale_status` enum('completed','cancelled','refunded') NOT NULL,
+ PRIMARY KEY (`sale_id`),
+ KEY `receipt_id` (`receipt_id`),
+ KEY `employee_id` (`employee_id`),
+ CONSTRAINT `fk_sale_employee` FOREIGN KEY (`employee_id`) REFERENCES `tbl_employee` (`employee_id`),
+ CONSTRAINT `fk_sale_receipt` FOREIGN KEY (`receipt_id`) REFERENCES `tbl_receipts` (`receipt_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
